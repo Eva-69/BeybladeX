@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyblade X Builder | Tier × Price × Combo</title>
+<style>
+  :root {
+    --bg: #0a0d1a;
+    --surface: #131829;
+    --surface-2: #1a2138;
+    --surface-3: #232b48;
+    --border: #1f2640;
+    --border-bright: #2d3656;
+    --text: #e8ecf5;
+    --text-dim: #8892a8;
+    --text-faint: #5a6478;
+    --t0: #ff2d55; --t0-bg: rgba(255,45,85,.08);
+    --t1: #ff8d3d; --t1-bg: rgba(255,141,61,.08);
+    --t2: #ffc547; --t2-bg: rgba(255,197,71,.08);
+    --t3: #4ade80; --t3-bg: rgba(74,222,128,.08);
+    --t4: #38bdf8; --t4-bg: rgba(56,189,248,.08);
+    --t5: #6b7280; --t5-bg: rgba(107,114,128,.08);
+    --my: #ffd23f; --sg: #ff5e7e; --jp: #ffffff;
+    --good: #4ade80; --warn: #fbbf24; --bad: #f87171;
+    --accent: #818cf8; --accent-2: #f472b6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    line-height: 1.55; font-size: 14px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+  /* HERO */
+  .hero { padding: 32px 16px 24px; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; top:-50%; left:-10%; width:60%; height:200%;
+    background: radial-gradient(ellipse, rgba(255,45,85,.1), transparent 60%); pointer-events:none; }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .eyebrow { font-size: 11px; letter-spacing: .25em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 14px; font-weight: 500; }
+  .dot { display:inline-block; width:6px; height:6px; background:var(--t0); border-radius:50%; margin-right:8px;
+    vertical-align:middle; box-shadow:0 0 12px var(--t0); }
+  h1 { font-size: clamp(24px, 6vw, 42px); line-height: 1.05; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+  h1 .accent { background: linear-gradient(135deg, var(--t0), #ff8d3d); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .lede { color: var(--text-dim); font-size: 14px; max-width: 600px; }
+
+  /* AUTH BAR */
+  .auth-bar { display:flex; align-items:center; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .auth-status { font-size:11px; color:var(--text-dim); display:flex; align-items:center; gap:6px; }
+  .auth-status .indicator { width:7px; height:7px; border-radius:50%; background:var(--text-faint); }
+  .auth-status.signed-in .indicator { background:var(--good); box-shadow:0 0 8px var(--good); }
+  .auth-status.local .indicator { background:var(--warn); }
+  .btn-auth { font-size:11px; padding:6px 12px; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text);
+    border-radius:6px; cursor:pointer; }
+  .btn-auth:hover { background: var(--surface-3); }
+  .btn-setup { font-size:11px; padding:6px 12px; background:transparent; border:1px solid var(--accent); color:var(--accent);
+    border-radius:6px; cursor:pointer; }
+
+  /* TABS */
+  .tabs-wrap { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .tabs { display:flex; gap:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; max-width: 1100px; margin: 0 auto; padding: 0 8px; }
+  .tabs::-webkit-scrollbar { display:none; }
+  .tab-btn {
+    background:transparent; border:none; color:var(--text-dim); padding:14px 16px;
+    font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap;
+    border-bottom: 2px solid transparent; transition: all .15s; position:relative;
+    font-family:inherit;
+  }
+  .tab-btn .num { font-size:10px; color:var(--text-faint); margin-right:6px; font-family:'SF Mono',monospace; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--t0); }
+  .tab-btn.special { color: var(--accent); }
+  .tab-btn.special.active { border-bottom-color: var(--accent); }
+  .tab-btn.special::before { content:'⚡'; margin-right:4px; }
+
+  /* PANELS */
+  .panel { display:none; padding: 28px 0 60px; }
+  .panel.active { display:block; }
+  .panel-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  h2 { font-size: clamp(20px, 4vw, 26px); font-weight: 700; letter-spacing: -0.01em; }
+  .panel-desc { color: var(--text-dim); font-size: 13px; margin-top: 6px; }
+
+  /* TIER ROWS */
+  .tier-grid { display:flex; flex-direction:column; gap:8px; }
+  .tier-row { display:grid; grid-template-columns:56px 1fr; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .tier-badge { display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; letter-spacing:-0.02em; border-right:1px solid var(--border); }
+  .tier-t0 { background:var(--t0-bg); color:var(--t0); }
+  .tier-t1 { background:var(--t1-bg); color:var(--t1); }
+  .tier-t2 { background:var(--t2-bg); color:var(--t2); }
+  .tier-t3 { background:var(--t3-bg); color:var(--t3); }
+  .tier-t4 { background:var(--t4-bg); color:var(--t4); }
+  .tier-t5 { background:var(--t5-bg); color:var(--t5); }
+  .tier-items { padding:10px 14px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .item { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; padding:4px 9px; background:var(--surface-2);
+    border-radius:6px; border:1px solid var(--border); color:var(--text); }
+  .item .usage { font-family:'SF Mono',monospace; font-size:10px; color:var(--text-faint); margin-left:2px; }
+  .item.star { border-color:var(--t0); background:var(--t0-bg); font-weight:600; }
+
+  /* COMBO CARDS */
+  .combos { display:grid; grid-template-columns: 1fr; gap:16px; margin-top: 8px; }
+  @media (min-width: 720px) { .combos { grid-template-columns: 1fr 1fr; } }
+  .combo { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; position:relative; }
+  .combo-rank { position:absolute; top:-10px; left:16px; background:var(--t0); color:white; font-size:10px; font-weight:700; padding:3px 10px; border-radius:4px; letter-spacing:.1em; }
+  .combo-name { font-size:17px; font-weight:700; margin-top:6px; margin-bottom:4px; }
+  .combo-zh { font-size:12px; color:var(--text-dim); margin-bottom:14px; }
+  .stars { display:flex; gap:12px; font-size:11px; color:var(--text-dim); margin-bottom:16px; padding-bottom:14px; border-bottom:1px dashed var(--border-bright); flex-wrap:wrap; }
+  .stars span strong { color:var(--text); }
+  .parts-list { display:flex; flex-direction:column; gap:10px; }
+  .part { display:grid; grid-template-columns: auto 1fr auto; gap:10px; font-size:12.5px; padding:8px 10px; background:rgba(255,255,255,.02); border-radius:6px; align-items:center; }
+  .part-tag { font-size:9.5px; font-weight:700; padding:2px 6px; border-radius:3px; background:var(--accent); color:white; letter-spacing:.05em; }
+  .part-detail .product { font-weight:600; }
+  .part-detail .source { display:block; font-size:10.5px; color:var(--text-faint); margin-top:2px; }
+  .part-price { text-align:right; font-family:'SF Mono',monospace; font-size:11px; color:var(--text-dim); white-space:nowrap; }
+  .part-price .my { color:var(--my); }
+  .part-price .sg { color:var(--sg); display:block; font-size:10px; }
+  .combo-total { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:12px; }
+  .combo-total .label { color:var(--text-dim); }
+  .combo-total .my-total { color:var(--my); font-family:'SF Mono',monospace; font-weight:600; }
+  .combo-total .sg-total { color:var(--sg); font-family:'SF Mono',monospace; font-weight:600; margin-left:12px; }
+
+  /* PRICE TABLE */
+  .price-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+  table.price-table { width:100%; border-collapse:collapse; font-size:12.5px; min-width:580px; }
+  .price-table th { text-align:left; padding:12px 10px; background:var(--surface-2); font-weight:600; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); border-bottom:1px solid var(--border); }
+  .price-table th:nth-child(3),.price-table th:nth-child(4),.price-table th:nth-child(5) { text-align:right; }
+  .price-table th:last-child { text-align:center; }
+  .price-table td { padding:11px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .price-table tr:last-child td { border-bottom:none; }
+  .price-table .sku { font-family:'SF Mono',monospace; font-size:10.5px; color:var(--text-faint); display:block; margin-top:2px; }
+  .price-table .price-cell { text-align:right; font-family:'SF Mono',monospace; font-weight:600; white-space:nowrap; }
+  .price-table .price-my { color:var(--my); }
+  .price-table .price-sg { color:var(--sg); }
+  .price-table .price-jp { color:var(--jp); }
+  .price-table .verdict { text-align:center; font-size:11px; white-space:nowrap; }
+  .v-good { color:var(--good); } .v-fair { color:var(--warn); } .v-bad { color:var(--bad); }
+  .item-name { font-weight:600; color:var(--text); }
+  .item-note { font-size:10.5px; color:var(--text-dim); margin-top:3px; }
+  .verdict-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; padding:12px 14px; background:var(--surface-2); border-top:1px solid var(--border); color:var(--text-dim); }
+
+  .callout { background: linear-gradient(135deg, rgba(255,45,85,.08), rgba(129,140,248,.06)); border:1px solid var(--border-bright); border-radius:12px; padding:18px; margin:18px 0; }
+  .callout h3 { font-size:14px; margin-bottom:8px; color:var(--text); }
+  .callout p { color:var(--text-dim); font-size:13px; }
+
+  .info-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:14px; }
+  .info-block h3 { font-size:14px; margin-bottom:10px; color:var(--accent); }
+  .info-block p, .info-block li { font-size:12.5px; color:var(--text-dim); margin-bottom:6px; }
+  .info-block strong { color:var(--text); }
+  .info-block ul { padding-left:18px; }
+
+  .shop-list { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-top:14px; }
+  .shop-row { display:grid; grid-template-columns:32px 1fr auto; gap:12px; padding:12px 14px; align-items:center; border-bottom:1px solid var(--border); }
+  .shop-row:last-child { border-bottom:none; }
+  .priority { width:28px; height:28px; background:var(--surface-2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--accent); border:1px solid var(--border-bright); }
+  .shop-row .desc { font-size:13px; }
+  .shop-row .name { font-weight:600; }
+  .shop-row .why { font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+  .shop-row .price { text-align:right; font-family:'SF Mono',monospace; font-size:11.5px; }
+  .shop-row .price .my { color:var(--my); font-weight:600; }
+  .shop-row .price .sg { color:var(--sg); display:block; font-size:10px; margin-top:2px; }
+  .shop-total { background:var(--surface-2); padding:14px 16px; display:flex; justify-content:space-between; align-items:center; font-weight:600; }
+  .shop-total .label { font-size:12px; color:var(--text-dim); letter-spacing:.05em; text-transform:uppercase; }
+
+  /* BUILDER */
+  .builder-grid { display:grid; grid-template-columns: 1fr; gap: 20px; margin-top: 8px; }
+  @media (min-width: 900px) { .builder-grid { grid-template-columns: 1fr 1fr; } }
+  .builder-section { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; }
+  .system-toggle { display:flex; gap:6px; margin-bottom:18px; padding:4px; background:var(--surface-2); border-radius:8px; border:1px solid var(--border); }
+  .sys-btn { flex:1; padding:8px 12px; background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size:12px; border-radius:6px; font-family:inherit; }
+  .sys-btn.active { background:var(--accent); color:white; }
+
+  .input-group { margin-bottom:14px; position:relative; }
+  .input-group label { display:block; font-size:11px; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
+  .part-input-wrap { position:relative; }
+  .part-input { width:100%; padding:10px 12px; background:var(--surface-2); border:1px solid var(--border-bright); border-radius:8px; color:var(--text); font-size:13px; font-family:inherit; }
+  .part-input:focus { outline:none; border-color:var(--accent); }
+  .clear-btn { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:var(--text-faint); cursor:pointer; font-size:18px; padding:0 6px; display:none; }
+  .clear-btn.visible { display:block; }
+  .suggestions { position:absolute; top:100%; left:0; right:0; background:var(--surface-3); border:1px solid var(--border-bright); border-radius:8px; margin-top:4px; max-height:280px; overflow-y:auto; z-index:10; display:none; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .suggestions.visible { display:block; }
+  .sug-item { padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; font-size:12.5px; }
+  .sug-item:last-child { border-bottom:none; }
+  .sug-item:hover, .sug-item.highlighted { background:var(--surface-2); }
+  .sug-tier { font-size:9px; font-weight:800; padding:2px 5px; border-radius:3px; letter-spacing:.05em; min-width:24px; text-align:center; }
+  .sug-tier.t0 { background:var(--t0-bg); color:var(--t0); }
+  .sug-tier.t1 { background:var(--t1-bg); color:var(--t1); }
+  .sug-tier.t2 { background:var(--t2-bg); color:var(--t2); }
+  .sug-tier.t3 { background:var(--t3-bg); color:var(--t3); }
+  .sug-tier.t4 { background:var(--t4-bg); color:var(--t4); }
+  .sug-tier.t5 { background:var(--t5-bg); color:var(--t5); }
+  .sug-info { flex:1; }
+  .sug-info .name { font-weight:600; color:var(--text); }
+  .sug-info .meta { font-size:10.5px; color:var(--text-dim); margin-top:1px; }
+  .sug-reco { font-size:10px; color:var(--accent-2); }
+
+  .reco-panel { background: rgba(129,140,248,.06); border:1px dashed var(--accent); border-radius:8px; padding:12px; margin:14px 0; font-size:12px; }
+  .reco-panel.hidden { display:none; }
+  .reco-panel .title { color:var(--accent); font-weight:600; font-size:11px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px; }
+  .reco-panel .reco-row { display:flex; justify-content:space-between; padding:4px 0; font-size:12.5px; color:var(--text); }
+  .reco-panel .reco-row .ratio { color:var(--text-dim); }
+  .reco-apply { margin-top:8px; width:100%; padding:7px; background:var(--accent); border:none; color:white; border-radius:6px; cursor:pointer; font-size:12px; font-family:inherit; font-weight:600; }
+
+  .selected-summary { background:var(--surface-2); border-radius:8px; padding:10px 12px; font-size:11.5px; margin-top:6px; color:var(--text-dim); display:none; }
+  .selected-summary.visible { display:block; }
+
+  /* RADAR CHART */
+  .chart-wrap { display:flex; flex-direction:column; align-items:center; padding:10px 0 0; }
+  .radar-svg { width:100%; max-width:340px; height:auto; }
+  .axis-line { stroke: var(--border-bright); stroke-width:1; }
+  .grid-line { stroke: var(--border); stroke-width:1; fill:none; }
+  .data-poly { fill: rgba(255,45,85,.25); stroke: var(--t0); stroke-width:2; }
+  .axis-label { fill: var(--text-dim); font-size:11px; font-family:inherit; text-anchor:middle; font-weight:600; }
+  .axis-value { fill: var(--text); font-size:13px; font-family:'SF Mono',monospace; text-anchor:middle; font-weight:700; }
+
+  .stats-editor { margin-top:14px; }
+  .stat-row { display:grid; grid-template-columns: 90px 1fr 56px; gap:10px; align-items:center; padding:6px 0; }
+  .stat-row label { font-size:12px; color:var(--text-dim); }
+  .stat-row input[type=range] { width:100%; accent-color: var(--t0); }
+  .stat-row input[type=number] { width:56px; padding:5px 8px; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text); border-radius:6px; font-size:12px; font-family:'SF Mono',monospace; text-align:center; }
+  .stat-row input[type=number]::-webkit-outer-spin-button,
+  .stat-row input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+  .builder-actions { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .config-name-input { flex:1; min-width:160px; padding:9px 12px; background:var(--surface-2); border:1px solid var(--border-bright); border-radius:8px; color:var(--text); font-family:inherit; font-size:13px; }
+  .btn-primary { padding:9px 16px; background:var(--t0); border:none; color:white; border-radius:8px; cursor:pointer; font-weight:600; font-size:13px; font-family:inherit; }
+  .btn-primary:hover { opacity:.9; }
+  .btn-secondary { padding:9px 14px; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text); border-radius:8px; cursor:pointer; font-size:12px; font-family:inherit; }
+
+  /* SAVED CONFIGS */
+  .saved-configs { margin-top: 24px; }
+  .saved-configs h3 { font-size:14px; margin-bottom:10px; }
+  .config-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:center; }
+  .config-card .info .title { font-weight:600; font-size:13px; }
+  .config-card .info .parts-summary { font-size:11px; color:var(--text-dim); margin-top:4px; line-height:1.5; }
+  .config-card .stats-mini { font-family:'SF Mono',monospace; font-size:10.5px; color:var(--text-faint); margin-top:6px; }
+  .config-card .actions { display:flex; gap:6px; }
+  .icon-btn { width:32px; height:32px; padding:0; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text); border-radius:6px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+  .icon-btn:hover { background:var(--surface-3); }
+  .icon-btn.danger:hover { background:rgba(248,113,113,.2); color:var(--bad); }
+  .empty-state { padding:40px 20px; text-align:center; color:var(--text-faint); font-size:12px; }
+
+  /* CUSTOM PART */
+  .custom-part-section { margin-top: 24px; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+  .cps-header { padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+  .cps-header .title { font-size:14px; font-weight:600; }
+  .cps-header .chev { color:var(--text-faint); transition:transform .2s; }
+  .custom-part-section.open .cps-header .chev { transform:rotate(180deg); }
+  .cps-body { display:none; padding: 0 16px 16px; }
+  .custom-part-section.open .cps-body { display:block; }
+  .cps-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px; }
+  .cps-grid input, .cps-grid select { padding:8px 10px; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text); border-radius:6px; font-size:12.5px; font-family:inherit; }
+  .cps-stats { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-top:10px; }
+  .cps-stats > div { display:flex; flex-direction:column; gap:4px; }
+  .cps-stats label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; }
+  .cps-stats input { padding:6px 8px; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text); border-radius:5px; font-family:'SF Mono',monospace; text-align:center; }
+
+  /* MODAL */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .modal-backdrop.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border-bright); border-radius:14px; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; }
+  .modal-head { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .modal-head h3 { font-size:16px; }
+  .modal-body { padding:20px; font-size:13px; color:var(--text-dim); line-height:1.65; }
+  .modal-body h4 { color:var(--text); font-size:13px; margin: 16px 0 8px; }
+  .modal-body code { background:var(--surface-2); padding:1px 6px; border-radius:3px; font-size:11.5px; color:var(--accent); font-family:'SF Mono',monospace; }
+  .modal-body pre { background:var(--surface-2); padding:12px; border-radius:8px; overflow-x:auto; font-size:11px; font-family:'SF Mono',monospace; color:var(--text); margin:8px 0; }
+  .modal-body ol, .modal-body ul { padding-left:20px; margin:8px 0; }
+  .modal-body li { margin-bottom:4px; }
+  .modal-body a { color:var(--accent); }
+  .modal-close { background:transparent; border:none; color:var(--text-dim); font-size:22px; cursor:pointer; }
+
+  /* BANNER */
+  .firebase-banner { background: rgba(251,191,36,.08); border:1px solid var(--warn); border-radius:8px; padding:10px 14px; margin:14px 0; font-size:12px; color:var(--text-dim); display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .firebase-banner.hidden { display:none; }
+
+  footer { margin-top: 60px; padding: 24px 16px; border-top: 1px solid var(--border); text-align: center; color: var(--text-faint); font-size: 11px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span>2026年6月 · 競技數據 + 組合測試器</div>
+    <h1>Beyblade X<br><span class="accent">Tier × Price × Builder</span></h1>
+    <p class="lede">完整T0–T5排名、馬新價格分析、自訂組合戰力測試。基於183場賽事數據。</p>
+    <div class="auth-bar">
+      <div class="auth-status" id="authStatus">
+        <span class="indicator"></span>
+        <span class="text">未登入 · 本地儲存模式</span>
+      </div>
+      <button class="btn-auth" id="authBtn">Google 登入</button>
+      <button class="btn-setup" id="setupBtn">⚙ Firebase 設定</button>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-panel="blades"><span class="num">01</span>陀螺刃片</button>
+    <button class="tab-btn" data-panel="ratchets"><span class="num">02</span>軸</button>
+    <button class="tab-btn" data-panel="bits"><span class="num">03</span>底軸</button>
+    <button class="tab-btn" data-panel="combos"><span class="num">04</span>T0組合</button>
+    <button class="tab-btn" data-panel="prices"><span class="num">05</span>馬新價格</button>
+    <button class="tab-btn" data-panel="budget"><span class="num">06</span>入坑包</button>
+    <button class="tab-btn special" data-panel="builder">組合測試器</button>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ===== TAB 1: BLADES ===== -->
+<section class="panel active" id="panel-blades">
+  <div class="panel-header"><h2>陀螺刃片排名</h2><p class="panel-desc">基於BBX Weekly 183場賽事使用率（過去4週）</p></div>
+  <div class="tier-grid" id="bladeTiers"></div>
+</section>
+
+<!-- ===== TAB 2: RATCHETS ===== -->
+<section class="panel" id="panel-ratchets">
+  <div class="panel-header"><h2>軸（Ratchet）排名</h2><p class="panel-desc">含使用率數據</p></div>
+  <div class="tier-grid" id="ratchetTiers"></div>
+</section>
+
+<!-- ===== TAB 3: BITS ===== -->
+<section class="panel" id="panel-bits">
+  <div class="panel-header"><h2>底軸（Bit）排名</h2><p class="panel-desc">含CX系統零件 Lock Chip / Main Blade / Assist Blade</p></div>
+  <div class="tier-grid" id="bitTiers"></div>
+  <div class="info-block">
+    <h3>CX系統零件</h3>
+    <ul>
+      <li><strong>Lock Chip T0：</strong>Plastic Chip、Metal Chip、Emperor 帝王</li>
+      <li><strong>Main Blade T0：</strong>Blast Main Blade</li>
+      <li><strong>Assist Blade T0：</strong>Heavy 重型、Flow 流動</li>
+      <li><strong>Assist Blade T1：</strong>Break 破壞、Wheel 輪</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== TAB 4: COMBOS ===== -->
+<section class="panel" id="panel-combos">
+  <div class="panel-header"><h2>T0 組合方案 × 購買清單</h2><p class="panel-desc">5 套頂級組合，含部件來源與價格</p></div>
+  <div class="combos">
+    <div class="combo"><div class="combo-rank">方案 A · 攻擊主力</div><div class="combo-name">Shark Scale 3-60 Low Rush</div><div class="combo-zh">鯊魚鱗 · 3-60軸 · 低衝底軸</div>
+      <div class="stars"><span>攻 <strong>5★</strong></span><span>持 <strong>3★</strong></span><span>防 <strong>3★</strong></span></div>
+      <div class="parts-list">
+        <div class="part"><span class="part-tag">刃片</span><div class="part-detail"><div class="product">Shark Scale Blade</div><span class="source">UX-15 Shark Scale Deck Set</span></div><div class="part-price"><span class="my">RM 129.90</span><span class="sg">S$ 39.36</span></div></div>
+        <div class="part"><span class="part-tag">底軸</span><div class="part-detail"><div class="product">Low Rush Bit</div><span class="source">UX-11 Impact Drake 9-60LR</span></div><div class="part-price"><span class="my">RM 72.90+</span><span class="sg">S$ 26.99</span></div></div>
+      </div>
+      <div class="combo-total"><span class="label">最低成本</span><span><span class="my-total">RM 202.80</span><span class="sg-total">S$ 66.35</span></span></div>
+    </div>
+
+    <div class="combo"><div class="combo-rank">方案 B · 持久王者</div><div class="combo-name">Wizard Rod 1-60 Low Orb</div><div class="combo-zh">巫師杖 · 1-60軸 · 低球底軸</div>
+      <div class="stars"><span>攻 <strong>1.5★</strong></span><span>持 <strong>4★</strong></span><span>防 <strong>4.5★</strong></span></div>
+      <div class="parts-list">
+        <div class="part"><span class="part-tag">刃片</span><div class="part-detail"><div class="product">Wizard Rod Blade</div><span class="source">UX-03 Booster Wizard Rod</span></div><div class="part-price"><span class="my">RM 52.90</span><span class="sg">S$ 13.67</span></div></div>
+        <div class="part"><span class="part-tag">軸</span><div class="part-detail"><div class="product">1-60 Ratchet</div><span class="source">UX-01 Dran Buster 1-60A</span></div><div class="part-price"><span class="my">RM 79.90</span><span class="sg">S$ 20.99</span></div></div>
+        <div class="part"><span class="part-tag">底軸</span><div class="part-detail"><div class="product">Low Orb + 4-55軸</div><span class="source">CX-02 Wizard Arc R4-55LO</span></div><div class="part-price"><span class="my">RM 85.90</span><span class="sg">S$ 22.99</span></div></div>
+      </div>
+      <div class="combo-total"><span class="label">最低成本</span><span><span class="my-total">RM 218.70</span><span class="sg-total">S$ 57.65</span></span></div>
+    </div>
+
+    <div class="combo"><div class="combo-rank">方案 C · 左旋制衡</div><div class="combo-name">Meteor Dragoon 9-60 Elevate</div><div class="combo-zh">流星魔龍 · 9-60軸 · 升降厚軸</div>
+      <div class="stars"><span>攻 <strong>3★</strong></span><span>持 <strong>3.5★</strong></span><span>防 <strong>4★</strong></span></div>
+      <div class="parts-list">
+        <div class="part"><span class="part-tag">刃片</span><div class="part-detail"><div class="product">Meteor Dragoon</div><span class="source">UX-17 Starter</span></div><div class="part-price"><span class="my">RM 89.90</span><span class="sg">S$ 25.99</span></div></div>
+        <div class="part"><span class="part-tag">軸</span><div class="part-detail"><div class="product">9-60 Ratchet</div><span class="source">BX-23 Phoenix Wing 9-60GF</span></div><div class="part-price"><span class="my">RM 89.90</span><span class="sg">S$ 25.99</span></div></div>
+        <div class="part"><span class="part-tag">底軸</span><div class="part-detail"><div class="product">Elevate（厚軸版）</div><span class="source">BX-48 Random Booster #02</span></div><div class="part-price"><span class="my">RM 52.90×抽</span><span class="sg">S$ 15.50×抽</span></div></div>
+      </div>
+      <div class="combo-total"><span class="label">⚠ 隨機抽，1/5中</span><span><span class="my-total">RM 232.70+</span><span class="sg-total">S$ 67.48+</span></span></div>
+    </div>
+
+    <div class="combo"><div class="combo-rank">方案 D · CX重攻擊</div><div class="combo-name">Emperor Blast Heavy 7-60 Rush</div><div class="combo-zh">帝王爆裂重型 · 7-60軸 · 衝刺</div>
+      <div class="stars"><span>攻 <strong>3.5★</strong></span><span>持 <strong>3★</strong></span><span>防 <strong>3.5★</strong></span></div>
+      <div class="parts-list">
+        <div class="part"><span class="part-tag">套裝</span><div class="part-detail"><div class="product">Emperor Chip + Heavy</div><span class="source">CX-11 Emperor Might Deck Set</span></div><div class="part-price"><span class="my">RM 129.90</span><span class="sg">S$ 40.30</span></div></div>
+        <div class="part"><span class="part-tag">主刃</span><div class="part-detail"><div class="product">Blast Main Blade</div><span class="source">CX-07 Pegasus Blast ATr</span></div><div class="part-price"><span class="my">RM 89.90</span><span class="sg">S$ 24.68</span></div></div>
+        <div class="part"><span class="part-tag">底軸</span><div class="part-detail"><div class="product">7-60 + Rush Bit</div><span class="source">BX-20 Dran Dagger Deck</span></div><div class="part-price"><span class="my">RM ~129</span><span class="sg">S$ ~36</span></div></div>
+      </div>
+      <div class="combo-total"><span class="label">需測試多顆</span><span><span class="my-total">RM 348.80+</span><span class="sg-total">S$ 100.98+</span></span></div>
+    </div>
+
+    <div class="combo"><div class="combo-rank">方案 E · 持久反制</div><div class="combo-name">Clock Mirage 4-55 Under Needle</div><div class="combo-zh">鐘擺幻影 · 4-55軸 · 下針</div>
+      <div class="stars"><span>攻 <strong>0.5★</strong></span><span>持 <strong>5★</strong></span><span>防 <strong>2★</strong></span></div>
+      <div class="parts-list">
+        <div class="part"><span class="part-tag">刃片</span><div class="part-detail"><div class="product">Clock Mirage Blade</div><span class="source">UX-16 Random Booster</span></div><div class="part-price"><span class="my">RM 52.90×抽</span><span class="sg">S$ 15.50×抽</span></div></div>
+        <div class="part"><span class="part-tag">軸+底軸</span><div class="part-detail"><div class="product">4-55 + Low Orb</div><span class="source">CX-02 Wizard Arc</span></div><div class="part-price"><span class="my">RM 85.90</span><span class="sg">S$ 22.99</span></div></div>
+        <div class="part"><span class="part-tag">底軸</span><div class="part-detail"><div class="product">Under Needle</div><span class="source">UX-13 Golem Rock 1-60UN</span></div><div class="part-price"><span class="my">RM ~89</span><span class="sg">S$ ~25</span></div></div>
+      </div>
+      <div class="combo-total"><span class="label">⚠ 需抽，零件易磨損</span><span><span class="my-total">RM 227.80+</span><span class="sg-total">S$ 63.49+</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TAB 5: PRICES ===== -->
+<section class="panel" id="panel-prices">
+  <div class="panel-header"><h2>馬新價格比對 × 溢價判斷</h2><p class="panel-desc">與日本MSRP對比，計算溢價%</p></div>
+  <div class="price-wrap">
+    <table class="price-table">
+      <thead><tr><th>商品</th><th>類別</th><th>大馬 RM</th><th>新加坡 SGD</th><th>日本¥</th><th>判斷</th></tr></thead>
+      <tbody>
+        <tr><td><div class="item-name">UX-15 Shark Scale Deck Set</div><div class="item-note">3on3整套</div><span class="sku">4904810982432</span></td><td>Deck Set</td><td class="price-cell price-my">129.90</td><td class="price-cell price-sg">39.36</td><td class="price-cell price-jp">4,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM124</span></td><td class="verdict v-good">✓ 公道</td></tr>
+        <tr><td><div class="item-name">UX-11 Impact Drake 9-60LR</div><div class="item-note">Low Rush底軸來源</div><span class="sku">4904810939559</span></td><td>Starter</td><td class="price-cell price-my">72.90–94.90</td><td class="price-cell price-sg">26.99</td><td class="price-cell price-jp">2,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM65</span></td><td class="verdict v-fair">⚠ HobbyDigi較划算</td></tr>
+        <tr><td><div class="item-name">UX-03 Wizard Rod 5-70DB</div><div class="item-note">巫師杖刃片</div><span class="sku">4904810914495</span></td><td>Booster</td><td class="price-cell price-my">52.90</td><td class="price-cell price-sg">13.67</td><td class="price-cell price-jp">1,540<br><span style="font-size:9px;color:var(--text-faint)">≈RM45</span></td><td class="verdict v-fair">⚠ 約+15%</td></tr>
+        <tr><td><div class="item-name">UX-01 Dran Buster 1-60A</div><div class="item-note">1-60軸來源</div><span class="sku">4904810888284</span></td><td>Starter</td><td class="price-cell price-my">79.90</td><td class="price-cell price-sg">20.99</td><td class="price-cell price-jp">2,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM65</span></td><td class="verdict v-fair">⚠ 約+23%</td></tr>
+        <tr><td><div class="item-name">UX-17 Meteor Dragoon 3-70J</div><div class="item-note">左旋刃片</div><span class="sku">4904810982449</span></td><td>Starter</td><td class="price-cell price-my">89.90</td><td class="price-cell price-sg">25.99</td><td class="price-cell price-jp">2,300<br><span style="font-size:9px;color:var(--text-faint)">≈RM68</span></td><td class="verdict v-fair">⚠ 約+32%</td></tr>
+        <tr><td><div class="item-name">CX-02 Wizard Arc R4-55LO</div><div class="item-note">4-55軸+Low Orb</div><span class="sku">4904810982357</span></td><td>Starter</td><td class="price-cell price-my">85.90</td><td class="price-cell price-sg">22.99</td><td class="price-cell price-jp">2,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM65</span></td><td class="verdict v-fair">⚠ 約+32%</td></tr>
+        <tr><td><div class="item-name">CX-11 Emperor Might Deck Set</div><div class="item-note">Emperor Chip + Heavy</div><span class="sku">4904810098775</span></td><td>Deck Set</td><td class="price-cell price-my">129.90</td><td class="price-cell price-sg">~40.30</td><td class="price-cell price-jp">4,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM124</span></td><td class="verdict v-good">✓ 公道</td></tr>
+        <tr><td><div class="item-name">CX-07 Pegasus Blast ATr</div><div class="item-note">Blast Main Blade</div><span class="sku">4904810958703</span></td><td>Starter</td><td class="price-cell price-my">89.90</td><td class="price-cell price-sg">~24.68</td><td class="price-cell price-jp">2,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM65</span></td><td class="verdict v-fair">⚠ 約+38%</td></tr>
+        <tr><td><div class="item-name">BX-23 Phoenix Wing 9-60GF</div><div class="item-note">9-60軸+鳳凰之翼</div><span class="sku">4904810888314</span></td><td>Starter</td><td class="price-cell price-my">89.90</td><td class="price-cell price-sg">25.99</td><td class="price-cell price-jp">2,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM65</span></td><td class="verdict v-fair">⚠ 約+38%</td></tr>
+        <tr><td><div class="item-name">BX-48 Random Booster Vol.9</div><div class="item-note">含厚軸版Elevate</div><span class="sku">4904810096092</span></td><td>Random</td><td class="price-cell price-my">52.90</td><td class="price-cell price-sg">15.50</td><td class="price-cell price-jp">1,540<br><span style="font-size:9px;color:var(--text-faint)">≈RM45</span></td><td class="verdict v-good">✓ 公道</td></tr>
+        <tr><td><div class="item-name">UX-16 Clock Mirage RB</div><div class="item-note">Clock Mirage唯一管道</div><span class="sku">4904810099239</span></td><td>Random</td><td class="price-cell price-my">52.90</td><td class="price-cell price-sg">~15.50</td><td class="price-cell price-jp">1,540<br><span style="font-size:9px;color:var(--text-faint)">≈RM45</span></td><td class="verdict v-good">✓ 公道</td></tr>
+        <tr><td><div class="item-name">UX-13 Golem Rock 1-60UN</div><div class="item-note">Under Needle來源</div><span class="sku">4904810959670</span></td><td>Starter</td><td class="price-cell price-my">~89</td><td class="price-cell price-sg">~25</td><td class="price-cell price-jp">2,200<br><span style="font-size:9px;color:var(--text-faint)">≈RM65</span></td><td class="verdict v-fair">⚠ 多店斷貨</td></tr>
+        <tr><td><div class="item-name">BX-46 Infinity Stadium Set</div><div class="item-note">含競技場</div><span class="sku">4904810959687</span></td><td>Set+場</td><td class="price-cell price-my">399.90</td><td class="price-cell price-sg">99.99</td><td class="price-cell price-jp">11,000<br><span style="font-size:9px;color:var(--text-faint)">≈RM325</span></td><td class="verdict v-fair">⚠ 約+23%</td></tr>
+        <tr><td><div class="item-name">BX-37 Xtreme Stadium</div><div class="item-note">官方競技場單獨</div><span class="sku">4904810888376</span></td><td>競技場</td><td class="price-cell price-my">399.90</td><td class="price-cell price-sg">~95</td><td class="price-cell price-jp">8,800<br><span style="font-size:9px;color:var(--text-faint)">≈RM260</span></td><td class="verdict v-bad">❌ 約+54%</td></tr>
+      </tbody>
+    </table>
+    <div class="verdict-legend">
+      <span><strong style="color:var(--good)">✓ 公道</strong> &lt;15%</span>
+      <span><strong style="color:var(--warn)">⚠ 溢價</strong> 15–40%</span>
+      <span><strong style="color:var(--bad)">❌ 高溢價</strong> &gt;40%</span>
+    </div>
+  </div>
+  <div class="callout"><h3>溢價總結</h3><p>大馬與新加坡實質價格相當（1 SGD ≈ 3.3 MYR）。<strong>Deck Set 和 Random Booster 接近日本原價</strong>，最划算。<strong>BX-37 Stadium 溢價最高（+54%）</strong>，建議透過 Buy&amp;Ship 代購。</p></div>
+  <div class="info-block">
+    <h3>推薦通路</h3>
+    <ul>
+      <li><strong>大馬：</strong>HobbyDigi（散件最便宜）、Toy Garden（實體可試）、Kelab Gasing Beyblade（社群）、Mall of Toys（代購）</li>
+      <li><strong>新加坡：</strong>HammerHouse（最接近日本價）、The Playground、ToysRUs SG</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== TAB 6: BUDGET ===== -->
+<section class="panel" id="panel-budget">
+  <div class="panel-header"><h2>新手最低預算入坑包</h2><p class="panel-desc">一次到位3套T0組合（A+B+C）</p></div>
+  <div class="shop-list">
+    <div class="shop-row"><div class="priority">1</div><div class="desc"><div class="name">UX-15 Shark Scale Deck Set</div><div class="why">攻擊主力+3-60軸</div></div><div class="price"><span class="my">RM 129.90</span><span class="sg">S$ 39.36</span></div></div>
+    <div class="shop-row"><div class="priority">2</div><div class="desc"><div class="name">UX-03 Wizard Rod 5-70DB</div><div class="why">巫師杖刃片</div></div><div class="price"><span class="my">RM 52.90</span><span class="sg">S$ 13.67</span></div></div>
+    <div class="shop-row"><div class="priority">3</div><div class="desc"><div class="name">UX-01 Dran Buster 1-60A</div><div class="why">1-60軸（賽事#1）</div></div><div class="price"><span class="my">RM 79.90</span><span class="sg">S$ 20.99</span></div></div>
+    <div class="shop-row"><div class="priority">4</div><div class="desc"><div class="name">CX-02 Wizard Arc R4-55LO</div><div class="why">Low Orb+4-55軸</div></div><div class="price"><span class="my">RM 85.90</span><span class="sg">S$ 22.99</span></div></div>
+    <div class="shop-row"><div class="priority">5</div><div class="desc"><div class="name">UX-11 Impact Drake 9-60LR</div><div class="why">Low Rush底軸</div></div><div class="price"><span class="my">RM 72.90</span><span class="sg">S$ 26.99</span></div></div>
+    <div class="shop-row"><div class="priority">6</div><div class="desc"><div class="name">UX-17 Meteor Dragoon 3-70J</div><div class="why">左旋刃片</div></div><div class="price"><span class="my">RM 89.90</span><span class="sg">S$ 25.99</span></div></div>
+    <div class="shop-row"><div class="priority">7</div><div class="desc"><div class="name">BX-48 Random Booster × 3</div><div class="why">抽厚軸Elevate（1/5）</div></div><div class="price"><span class="my">RM 158.70</span><span class="sg">S$ 46.50</span></div></div>
+    <div class="shop-row"><div class="priority">8</div><div class="desc"><div class="name">BX-46 Battle Entry Infinity</div><div class="why">含競技場+陀螺+發射器</div></div><div class="price"><span class="my">RM 399.90</span><span class="sg">S$ 99.99</span></div></div>
+    <div class="shop-total"><div class="label">完整入坑總計</div><div><span class="my" style="color:var(--my);font-family:'SF Mono',monospace;">RM 1,070.10</span><br><span class="sg" style="color:var(--sg);font-family:'SF Mono',monospace;font-size:11px;">S$ 264.48</span></div></div>
+  </div>
+  <div class="callout"><h3>💡 競技進階</h3><p>頂級玩家會買 <strong>3–5顆同款</strong> 來挑平衡（balance tuning）。Shark Scale 和 Heavy Assist 磨損最快，建議備份。2025世界錦標賽香港選手 Kyle 奪亞軍，亞洲水準頂尖。</p></div>
+</section>
+
+<!-- ===== TAB 7: BUILDER ===== -->
+<section class="panel" id="panel-builder">
+  <div class="panel-header"><h2>⚡ 組合測試器</h2><p class="panel-desc">輸入零件 → 自動推薦搭配 → 生成六邊形戰力圖 → 儲存配置</p></div>
+
+  <div class="firebase-banner" id="firebaseBanner">
+    <span>📦 目前使用本地儲存（瀏覽器localStorage）。設定 Firebase 後可跨裝置同步配置與自訂部件。</span>
+    <button class="btn-auth" onclick="openSetup()">設定 Firebase</button>
+  </div>
+
+  <div class="builder-grid">
+    <!-- LEFT: Inputs -->
+    <div class="builder-section">
+      <div class="system-toggle">
+        <button class="sys-btn active" data-system="bx">BX/UX 系統</button>
+        <button class="sys-btn" data-system="cx">CX 系統</button>
+      </div>
+
+      <div id="bxInputs">
+        <div class="input-group">
+          <label>Blade · 陀螺刃片</label>
+          <div class="part-input-wrap">
+            <input class="part-input" data-cat="blade" type="text" placeholder="輸入名稱、代號或中文（例：Shark, UX-15, 鯊魚）" autocomplete="off">
+            <button class="clear-btn" data-cat="blade">×</button>
+          </div>
+          <div class="suggestions" data-cat="blade"></div>
+          <div class="selected-summary" data-cat="blade"></div>
+        </div>
+      </div>
+
+      <div id="cxInputs" style="display:none">
+        <div class="input-group">
+          <label>Lock Chip · 鎖鏈片</label>
+          <div class="part-input-wrap">
+            <input class="part-input" data-cat="lockChip" type="text" placeholder="例：Plastic, Metal, Emperor" autocomplete="off">
+            <button class="clear-btn" data-cat="lockChip">×</button>
+          </div>
+          <div class="suggestions" data-cat="lockChip"></div>
+          <div class="selected-summary" data-cat="lockChip"></div>
+        </div>
+        <div class="input-group">
+          <label>Main Blade · 主刃</label>
+          <div class="part-input-wrap">
+            <input class="part-input" data-cat="mainBlade" type="text" placeholder="例：Blast, Might, Hunt" autocomplete="off">
+            <button class="clear-btn" data-cat="mainBlade">×</button>
+          </div>
+          <div class="suggestions" data-cat="mainBlade"></div>
+          <div class="selected-summary" data-cat="mainBlade"></div>
+        </div>
+        <div class="input-group">
+          <label>Assist Blade · 助動環</label>
+          <div class="part-input-wrap">
+            <input class="part-input" data-cat="assistBlade" type="text" placeholder="例：Heavy, Flow, Wheel" autocomplete="off">
+            <button class="clear-btn" data-cat="assistBlade">×</button>
+          </div>
+          <div class="suggestions" data-cat="assistBlade"></div>
+          <div class="selected-summary" data-cat="assistBlade"></div>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Ratchet · 軸</label>
+        <div class="part-input-wrap">
+          <input class="part-input" data-cat="ratchet" type="text" placeholder="例：1-60, 9-60, 3-60" autocomplete="off">
+          <button class="clear-btn" data-cat="ratchet">×</button>
+        </div>
+        <div class="suggestions" data-cat="ratchet"></div>
+        <div class="selected-summary" data-cat="ratchet"></div>
+      </div>
+
+      <div class="input-group">
+        <label>Bit · 底軸</label>
+        <div class="part-input-wrap">
+          <input class="part-input" data-cat="bit" type="text" placeholder="例：Hexa, Low Rush, Elevate" autocomplete="off">
+          <button class="clear-btn" data-cat="bit">×</button>
+        </div>
+        <div class="suggestions" data-cat="bit"></div>
+        <div class="selected-summary" data-cat="bit"></div>
+      </div>
+
+      <div class="reco-panel hidden" id="recoPanel">
+        <div class="title">💡 推薦搭配（基於賽事數據）</div>
+        <div id="recoContent"></div>
+        <button class="reco-apply" id="recoApply">一鍵套用推薦</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Chart + Stats -->
+    <div class="builder-section">
+      <div class="chart-wrap">
+        <svg class="radar-svg" id="radarChart" viewBox="0 0 340 320"></svg>
+      </div>
+      <div class="stats-editor" id="statsEditor">
+        <!-- Generated by JS -->
+      </div>
+      <button class="btn-secondary" id="resetStats" style="width:100%;margin-top:8px;">🔄 重置為自動計算值</button>
+
+      <div class="builder-actions">
+        <input class="config-name-input" id="configName" type="text" placeholder="配置名稱（例：攻擊主力 v2）">
+        <button class="btn-primary" id="saveConfig">💾 儲存配置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved Configs -->
+  <div class="saved-configs">
+    <h3>📁 我的配置</h3>
+    <div id="configsContainer">
+      <div class="empty-state">尚無儲存配置 · 搭配好後點上方「儲存配置」</div>
+    </div>
+  </div>
+
+  <!-- Custom Part -->
+  <div class="custom-part-section" id="customPartSection">
+    <div class="cps-header" onclick="document.getElementById('customPartSection').classList.toggle('open')">
+      <div class="title">➕ 新增自訂部件</div>
+      <div class="chev">▼</div>
+    </div>
+    <div class="cps-body">
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:10px;">若資料庫沒有你要的部件，新增到你的個人庫，下次搜尋會自動出現。</p>
+      <div class="cps-grid">
+        <input id="cpName" placeholder="英文名稱（例：Lightning Eldragor）">
+        <input id="cpNameZh" placeholder="中文名稱（選填）">
+        <input id="cpCode" placeholder="代號（例：BX-00）">
+        <select id="cpCategory">
+          <option value="blade">Blade 陀螺刃片</option>
+          <option value="ratchet">Ratchet 軸</option>
+          <option value="bit">Bit 底軸</option>
+          <option value="lockChip">Lock Chip 鎖鏈片</option>
+          <option value="mainBlade">Main Blade 主刃</option>
+          <option value="assistBlade">Assist Blade 助動環</option>
+        </select>
+        <select id="cpTier">
+          <option value="T0">T0</option><option value="T1">T1</option><option value="T2">T2</option>
+          <option value="T3" selected>T3</option><option value="T4">T4</option><option value="T5">T5</option>
+        </select>
+        <select id="cpSpin">
+          <option value="R">Right 右旋</option><option value="L">Left 左旋</option><option value="-">無 / N/A</option>
+        </select>
+      </div>
+      <div class="cps-stats">
+        <div><label>Attack</label><input id="cpAttack" type="number" min="0" max="100" value="50"></div>
+        <div><label>Defense</label><input id="cpDefense" type="number" min="0" max="100" value="50"></div>
+        <div><label>Stamina</label><input id="cpStamina" type="number" min="0" max="100" value="50"></div>
+        <div><label>Weight</label><input id="cpWeight" type="number" min="0" max="100" value="50"></div>
+        <div><label>Burst</label><input id="cpBurst" type="number" min="0" max="100" value="50"></div>
+        <div><label>Dash</label><input id="cpDash" type="number" min="0" max="100" value="50"></div>
+      </div>
+      <button class="btn-primary" id="addCustomPart" style="width:100%;margin-top:12px;">✓ 加入個人資料庫</button>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- SETUP MODAL -->
+<div class="modal-backdrop" id="setupModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>⚙ Firebase + GitHub Pages 設定</h3>
+      <button class="modal-close" onclick="closeSetup()">×</button>
+    </div>
+    <div class="modal-body">
+      <p>請依照 <code>SETUP.md</code> 完整步驟設定。簡要：</p>
+      <h4>1. Firebase</h4>
+      <ol>
+        <li>到 <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> 建立新專案</li>
+        <li>Build → Authentication → Sign-in method → 啟用 Google</li>
+        <li>Build → Firestore Database → Create database（test mode）</li>
+        <li>Project settings → 加入Web app，複製 <code>firebaseConfig</code></li>
+        <li>編輯本 HTML 檔案，找到 <code>FIREBASE_CONFIG</code> 區塊，貼上你的配置</li>
+        <li>Authentication → Settings → Authorized domains → 加入你的 GitHub Pages 網域</li>
+      </ol>
+      <h4>2. GitHub Pages</h4>
+      <ol>
+        <li>建立新 repo（public）</li>
+        <li>把這個檔案改名為 <code>index.html</code> 上傳</li>
+        <li>Settings → Pages → Source: <code>main</code> branch / root</li>
+        <li>等 1–2 分鐘，網址為 <code>https://&lt;username&gt;.github.io/&lt;repo&gt;/</code></li>
+        <li>回 Firebase 把這個網址加到 Authorized domains</li>
+      </ol>
+      <h4>Firestore 安全規則</h4>
+      <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+  }
+}</pre>
+      <p>詳細說明見隨附的 <code>SETUP.md</code> 檔案（英文版）。</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Beyblade X Builder · 數據截至 2026年5月 · MIT License<br>
+  資料來源：BBX Weekly · BeyBase · WBO · Takara Tomy 官方公告
+</footer>
+
+<!-- ============= PARTS DATABASE ============= -->
+<script>
+// Stats format: [Attack, Defense, Stamina, Weight, Burst, Dash]
+const DB = {
+  blade: [
+    {i:'shark-scale', n:'Shark Scale', z:'鯊魚鱗', c:'UX-15', t:'T0', sp:'R', sy:'UX', s:[95,55,65,75,60,90], r:{ratchet:'3-60', bit:'low-rush'}, u:92},
+    {i:'wizard-rod', n:'Wizard Rod', z:'巫師杖', c:'UX-03', t:'T0', sp:'R', sy:'UX', s:[25,90,95,65,85,40], r:{ratchet:'1-60', bit:'low-orb'}, u:90},
+    {i:'aero-pegasus', n:'Aero Pegasus', z:'翔空天馬', c:'UX-00', t:'T1', sp:'R', sy:'UX', s:[85,55,75,75,70,85], r:{ratchet:'7-60', bit:'rush'}, u:65},
+    {i:'meteor-dragoon', n:'Meteor Dragoon', z:'流星魔龍', c:'UX-17', t:'T1', sp:'L', sy:'UX', s:[85,65,80,65,55,85], r:{ratchet:'9-60', bit:'elevate'}, u:52},
+    {i:'clock-mirage', n:'Clock Mirage', z:'鐘擺幻影', c:'UX-16', t:'T1', sp:'R', sy:'UX', s:[15,35,100,70,20,30], r:{ratchet:'4-55', bit:'under-needle'}, u:34},
+    {i:'cobalt-dragoon', n:'Cobalt Dragoon', z:'鈷藍魔龍', c:'BX-34', t:'T2', sp:'L', sy:'BX', s:[50,70,85,70,75,55], r:{ratchet:'5-60', bit:'elevate'}, u:53},
+    {i:'wyvern-hover', n:'Wyvern Hover', z:'翼龍漂浮', c:'BX-45', t:'T2', sp:'R', sy:'BX', s:[60,85,75,75,80,65], r:{ratchet:'9-60', bit:'rush'}, u:50},
+    {i:'phoenix-wing', n:'Phoenix Wing', z:'鳳凰之翼', c:'BX-23', t:'T2', sp:'R', sy:'BX', s:[65,70,75,65,75,60], r:{ratchet:'9-60', bit:'low-rush'}, u:41},
+    {i:'knight-mail', n:'Knight Mail', z:'騎士鎧', c:'BX-44', t:'T3', sp:'R', sy:'BX', s:[40,90,70,75,85,45], r:{ratchet:'3-85', bit:'ball'}, u:50},
+    {i:'rage', n:'Rage', z:'暴怒', c:'CX-15', t:'T3', sp:'R', sy:'BX', s:[80,55,55,65,55,80], r:{ratchet:'3-60', bit:'rush'}, u:49},
+    {i:'silver-wolf', n:'Silver Wolf', z:'銀狼', c:'UX-08', t:'T3', sp:'R', sy:'UX', s:[30,65,85,65,70,40], r:{ratchet:'9-60', bit:'under-needle'}, u:44},
+    {i:'blitz', n:'Blitz', z:'閃電', c:'BX-43', t:'T3', sp:'R', sy:'BX', s:[75,60,55,65,60,75], r:{ratchet:'3-60', bit:'rush'}, u:36},
+    {i:'tyranno-beat', n:'Tyranno Beat', z:'暴龍節拍', c:'BX-32', t:'T3', sp:'R', sy:'BX', s:[85,50,55,70,55,80], r:{ratchet:'1-70', bit:'low-rush'}, u:36},
+    {i:'mummy-curse', n:'Mummy Curse', z:'木乃伊詛咒', c:'BX-49', t:'T3', sp:'R', sy:'BX', s:[60,75,65,70,75,60], r:{ratchet:'3-60', bit:'hexa'}, u:34},
+    {i:'scorpio-spear', n:'Scorpio Spear', z:'天蠍之矛', c:'BX-42', t:'T4', sp:'R', sy:'BX', s:[65,55,55,60,55,65], r:{ratchet:'3-60', bit:'point'}, u:33},
+    {i:'golem-rock', n:'Golem Rock', z:'哥雷岩', c:'UX-13', t:'T4', sp:'R', sy:'UX', s:[45,85,65,70,80,40], r:{ratchet:'1-60', bit:'under-needle'}, u:31},
+    {i:'fort', n:'Fort', z:'堡壘', c:'BX-38', t:'T4', sp:'R', sy:'BX', s:[40,80,70,65,75,40], r:{ratchet:'7-60', bit:'taper'}, u:29},
+    {i:'bullet-griffon', n:'Bullet Griffon', z:'子彈獅鷲', c:'UX-14', t:'T4', sp:'R', sy:'UX', s:[75,70,65,80,65,70], r:{ratchet:'9-60', bit:'free-ball'}, u:28},
+    {i:'dran-sword', n:'Dran Sword', z:'翔龍神劍', c:'BX-01', t:'T5', sp:'R', sy:'BX', s:[60,50,55,55,55,65], r:{ratchet:'3-60', bit:'flat'}, u:20},
+    {i:'hells-scythe', n:'Hells Scythe', z:'冥神鐮刀', c:'BX-02', t:'T5', sp:'R', sy:'BX', s:[35,55,75,55,65,40], r:{ratchet:'4-60', bit:'ball'}, u:18},
+    {i:'wizard-arrow', n:'Wizard Arrow', z:'巫師之箭', c:'BX-04', t:'T5', sp:'R', sy:'BX', s:[35,60,80,60,70,40], r:{ratchet:'4-60', bit:'needle'}, u:16},
+    {i:'knight-shield', n:'Knight Shield', z:'騎士盾', c:'BX-05', t:'T5', sp:'R', sy:'BX', s:[35,80,65,60,75,40], r:{ratchet:'3-80', bit:'taper'}, u:15},
+    {i:'unicorn-sting', n:'Unicorn Sting', z:'獨角獸刺', c:'BX-13', t:'T5', sp:'R', sy:'BX', s:[55,60,60,55,60,55], r:{ratchet:'5-60', bit:'ball'}, u:12},
+    {i:'shark-edge', n:'Shark Edge', z:'鯊魚之刃', c:'BX-14', t:'T5', sp:'R', sy:'BX', s:[70,45,55,55,50,70], r:{ratchet:'3-60', bit:'rush'}, u:11},
+    {i:'dran-dagger', n:'Dran Dagger', z:'翔龍雙刃', c:'BX-20', t:'T5', sp:'R', sy:'BX', s:[70,45,55,55,50,70], r:{ratchet:'3-60', bit:'flat'}, u:10},
+    {i:'dran-brave', n:'Dran Brave', z:'翔龍勇者', c:'CX-01', t:'T5', sp:'R', sy:'BX', s:[65,50,60,55,55,65], r:{ratchet:'4-60', bit:'point'}, u:8},
+    {i:'knight-lance', n:'Knight Lance', z:'騎士長槍', c:'BX-19', t:'T5', sp:'R', sy:'BX', s:[65,65,60,60,65,60], r:{ratchet:'4-80', bit:'flat'}, u:8},
+    {i:'leon-claw', n:'Leon Claw', z:'獅之爪', c:'BX-15', t:'T5', sp:'R', sy:'BX', s:[65,45,55,55,50,65], r:{ratchet:'5-60', bit:'point'}, u:7}
+  ],
+  ratchet: [
+    {i:'1-60', n:'1-60', t:'T0', s:[50,75,85,50,85,55], u:100},
+    {i:'9-60', n:'9-60', t:'T0', s:[55,70,80,50,85,55], u:76},
+    {i:'3-60', n:'3-60', t:'T0', s:[60,65,70,50,80,60], u:57},
+    {i:'1-70', n:'1-70', t:'T1', s:[50,65,80,55,80,55], u:56},
+    {i:'1-50', n:'1-50', t:'T1', s:[65,70,65,50,80,65], u:56},
+    {i:'3-70', n:'3-70', t:'T1', s:[55,65,75,55,75,55], u:55},
+    {i:'7-60', n:'7-60', t:'T1', s:[65,65,65,55,75,65], u:50},
+    {i:'7-70', n:'7-70', t:'T2', s:[60,65,70,60,75,60], u:49},
+    {i:'4-50', n:'4-50', t:'T2', s:[65,65,60,50,75,65], u:46},
+    {i:'5-60', n:'5-60', t:'T2', s:[55,65,70,55,75,55], u:44},
+    {i:'6-60', n:'6-60', t:'T3', s:[60,60,65,55,70,60], u:41},
+    {i:'1-80', n:'1-80', t:'T3', s:[45,55,75,60,70,45], u:34},
+    {i:'4-55', n:'4-55', t:'T3', s:[50,55,65,50,65,50], u:34},
+    {i:'9-70', n:'9-70', t:'T3', s:[50,60,75,55,70,50], u:34},
+    {i:'7-55', n:'7-55', t:'T4', s:[60,55,55,50,65,60], u:33},
+    {i:'8-70', n:'8-70', t:'T4', s:[55,55,65,55,65,55], u:32},
+    {i:'m-85', n:'M-85', t:'T4', s:[35,60,75,75,70,40], u:18},
+    {i:'2-60', n:'2-60', t:'T5', s:[55,55,60,50,60,55], u:15},
+    {i:'4-60', n:'4-60', t:'T5', s:[55,55,60,50,65,55], u:14},
+    {i:'4-70', n:'4-70', t:'T5', s:[55,55,65,55,65,55], u:12},
+    {i:'3-80', n:'3-80', t:'T5', s:[45,55,70,55,65,45], u:10},
+    {i:'5-80', n:'5-80', t:'T5', s:[40,50,65,60,60,40], u:8},
+    {i:'4-80', n:'4-80', t:'T5', s:[35,50,70,60,65,40], u:7},
+    {i:'3-85', n:'3-85', t:'T5', s:[40,55,70,55,65,40], u:5}
+  ],
+  bit: [
+    {i:'hexa', n:'Hexa', z:'六角', c:'H', t:'T0', s:[60,85,75,50,85,50], u:78},
+    {i:'low-rush', n:'Low Rush', z:'低衝', c:'LR', t:'T0', s:[95,40,55,50,40,100], u:75},
+    {i:'rush', n:'Rush', z:'衝刺', c:'R', t:'T0', s:[80,55,65,55,55,85], u:67},
+    {i:'free-ball', n:'Free Ball', z:'自由球', c:'FB', t:'T1', s:[55,75,85,55,70,50], u:58},
+    {i:'elevate', n:'Elevate', z:'升降', c:'E', t:'T1', s:[65,75,80,55,70,55], u:54},
+    {i:'level', n:'Level', z:'水平', c:'L', t:'T1', s:[70,60,65,50,60,65], u:52},
+    {i:'low-orb', n:'Low Orb', z:'低球', c:'LO', t:'T1', s:[35,80,90,55,75,35], u:42},
+    {i:'kick', n:'Kick', z:'踢', c:'K', t:'T2', s:[75,55,60,50,55,75], u:51},
+    {i:'jolt', n:'Jolt', z:'震動', c:'J', t:'T2', s:[65,60,65,55,60,65], u:45},
+    {i:'ball', n:'Ball', z:'球', c:'B', t:'T2', s:[30,75,85,50,75,30], u:43},
+    {i:'wedge', n:'Wedge', z:'楔形', c:'W', t:'T3', s:[60,60,60,50,55,60], u:42},
+    {i:'point', n:'Point', z:'點', c:'P', t:'T3', s:[50,60,65,45,60,50], u:41},
+    {i:'unite', n:'Unite', z:'聯合', c:'U', t:'T3', s:[55,65,65,50,60,55], u:40},
+    {i:'taper', n:'Taper', z:'漸縮', c:'T', t:'T4', s:[60,55,60,45,50,60], u:40},
+    {i:'under-needle', n:'Under Needle', z:'下針', c:'UN', t:'T4', s:[20,40,95,40,30,20], u:29},
+    {i:'disc-ball', n:'Disc Ball', z:'圓盤球', c:'DB', t:'T4', s:[30,80,85,55,75,30], u:25},
+    {i:'flat', n:'Flat', z:'平', c:'F', t:'T5', s:[75,40,40,45,40,75], u:18},
+    {i:'needle', n:'Needle', z:'針', c:'N', t:'T5', s:[30,65,75,40,50,30], u:15},
+    {i:'high-needle', n:'High Needle', z:'高針', c:'HN', t:'T5', s:[35,55,75,40,55,35], u:12},
+    {i:'gear-flat', n:'Gear Flat', z:'齒輪平', c:'GF', t:'T5', s:[70,45,55,50,45,70], u:10},
+    {i:'low-flat', n:'Low Flat', z:'低平', c:'LF', t:'T5', s:[80,35,45,45,40,80], u:9},
+    {i:'spike', n:'Spike', z:'尖', c:'S', t:'T5', s:[25,65,80,40,60,25], u:6},
+    {i:'drift', n:'Drift', z:'漂移', c:'D', t:'T5', s:[35,60,85,45,65,30], u:5},
+    {i:'quake', n:'Quake', z:'震', c:'Q', t:'T5', s:[65,55,55,45,50,65], u:4}
+  ],
+  lockChip: [
+    {i:'plastic-chip', n:'Plastic Chip', z:'塑膠片', t:'T0', s:[0,0,0,30,60,0], u:56},
+    {i:'metal-chip', n:'Metal Chip', z:'金屬片', t:'T0', s:[0,10,0,65,65,0], u:46},
+    {i:'emperor', n:'Emperor', z:'帝王', c:'CX-11', t:'T0', s:[0,15,0,75,70,0], u:30},
+    {i:'valkyrie', n:'Valkyrie', z:'瓦爾基里', t:'T1', s:[0,15,0,80,65,0], u:20}
+  ],
+  mainBlade: [
+    {i:'blast', n:'Blast', z:'爆裂', c:'CX-07', t:'T0', s:[80,70,65,75,65,75], u:47},
+    {i:'might', n:'Might', z:'威力', c:'CX-11', t:'T1', s:[70,75,65,75,65,70], u:35},
+    {i:'pegasus', n:'Pegasus', z:'天馬', c:'CX-00', t:'T1', s:[75,60,75,70,65,75], u:32},
+    {i:'eclipse', n:'Eclipse', z:'蝕', c:'CX-09', t:'T1', s:[75,70,65,75,65,70], u:28},
+    {i:'hunt', n:'Hunt', z:'狩獵', c:'CX-10', t:'T2', s:[60,70,75,70,65,60], u:22},
+    {i:'dran', n:'Dran', z:'翔龍', c:'CX-01', t:'T2', s:[65,55,60,65,55,65], u:20},
+    {i:'reaper', n:'Reaper', z:'死神', t:'T2', s:[65,65,70,65,60,65], u:18}
+  ],
+  assistBlade: [
+    {i:'heavy', n:'Heavy', z:'重型', c:'CX-11', t:'T0', s:[20,40,15,85,40,15], u:48},
+    {i:'flow', n:'Flow', z:'流動', t:'T0', s:[25,55,50,55,45,25], u:48},
+    {i:'break', n:'Break', z:'破壞', t:'T1', s:[30,45,40,55,40,30], u:32},
+    {i:'wheel', n:'Wheel', z:'輪', t:'T1', s:[20,55,55,60,50,20], u:32},
+    {i:'wall', n:'Wall', z:'牆', t:'T2', s:[15,65,30,55,55,15], u:18},
+    {i:'round', n:'Round', z:'圓', c:'CX-02', t:'T2', s:[15,50,55,45,45,15], u:15},
+    {i:'free', n:'Free', z:'自由', t:'T3', s:[20,45,40,55,40,20], u:10}
+  ]
+};
+
+// Stats labels
+const STAT_LABELS = ['Attack', 'Defense', 'Stamina', 'Weight', 'Burst', 'Dash'];
+const STAT_LABELS_ZH = ['攻擊', '防禦', '持久', '重量', '耐爆', '衝刺'];
+
+// Category weights for final stat calc
+const WEIGHTS_BX = { blade: 0.55, ratchet: 0.2, bit: 0.25 };
+const WEIGHTS_CX = { lockChip: 0.05, mainBlade: 0.35, assistBlade: 0.15, ratchet: 0.2, bit: 0.25 };
+
+let currentSystem = 'bx';
+let selected = { blade: null, ratchet: null, bit: null, lockChip: null, mainBlade: null, assistBlade: null };
+let statsOverride = null;
+let customParts = []; // Will be loaded from storage
+let savedConfigs = [];
+let firebaseReady = false;
+let currentUser = null;
+let firebaseModule = null;
+</script>
+
+<!-- ============= FIREBASE INIT ============= -->
+<script type="module">
+// ============================================================
+// FIREBASE_CONFIG — PASTE YOUR CONFIG HERE
+// Leave as-is to use localStorage only
+// ============================================================
+const FIREBASE_CONFIG = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+  projectId: "PASTE_YOUR_PROJECT_ID",
+  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
+};
+
+const isConfigured = !FIREBASE_CONFIG.apiKey.startsWith('PASTE_');
+
+if (isConfigured) {
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+    const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } =
+      await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+    const { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc } =
+      await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    window.firebaseModule = {
+      auth, db, provider,
+      signInWithPopup, signOut, onAuthStateChanged,
+      collection, addDoc, getDocs, deleteDoc, doc, setDoc
+    };
+    window.firebaseReady = true;
+    document.getElementById('firebaseBanner').classList.add('hidden');
+
+    onAuthStateChanged(auth, (user) => {
+      window.currentUser = user;
+      if (window.onAuthChange) window.onAuthChange(user);
+    });
+  } catch (e) {
+    console.error('Firebase init failed:', e);
+  }
+}
+</script>
+
+<!-- ============= MAIN APP LOGIC ============= -->
+<script>
+// ===== POPULATE TIER GRIDS =====
+function renderTiers() {
+  const cats = ['blade', 'ratchet', 'bit'];
+  const containers = { blade: 'bladeTiers', ratchet: 'ratchetTiers', bit: 'bitTiers' };
+  cats.forEach(cat => {
+    const tiers = {T0:[], T1:[], T2:[], T3:[], T4:[], T5:[]};
+    DB[cat].forEach(p => tiers[p.t]?.push(p));
+    const container = document.getElementById(containers[cat]);
+    container.innerHTML = ['T0','T1','T2','T3','T4','T5'].map(t => {
+      const items = tiers[t];
+      if (!items.length) return '';
+      return `<div class="tier-row">
+        <div class="tier-badge tier-${t.toLowerCase()}">${t}</div>
+        <div class="tier-items">
+          ${items.map(p => `<span class="item${t==='T0'?' star':''}">${p.n}${p.z ? ' ' + p.z : ''}<span class="usage">${p.u}</span></span>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+renderTiers();
+
+// ===== TABS =====
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ===== SYSTEM TOGGLE =====
+document.querySelectorAll('.sys-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sys-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSystem = btn.dataset.system;
+    document.getElementById('bxInputs').style.display = currentSystem === 'bx' ? 'block' : 'none';
+    document.getElementById('cxInputs').style.display = currentSystem === 'cx' ? 'block' : 'none';
+    // Clear opposite system
+    if (currentSystem === 'bx') {
+      selected.lockChip = null; selected.mainBlade = null; selected.assistBlade = null;
+    } else {
+      selected.blade = null;
+    }
+    document.querySelectorAll('.part-input').forEach(inp => inp.value = '');
+    document.querySelectorAll('.selected-summary').forEach(s => s.classList.remove('visible'));
+    updateOutput();
+  });
+});
+
+// ===== SEARCH FUNCTION =====
+function getAllParts(cat) {
+  return [...(DB[cat] || []), ...customParts.filter(p => p.cat === cat)];
+}
+function search(query, cat) {
+  const q = (query || '').toLowerCase().trim();
+  if (!q) return getAllParts(cat).slice(0, 12);
+  return getAllParts(cat).filter(p =>
+    p.n.toLowerCase().includes(q) ||
+    (p.z && p.z.includes(query)) ||
+    (p.c && p.c.toLowerCase().includes(q)) ||
+    p.i.includes(q)
+  ).slice(0, 12);
+}
+
+// ===== AUTOCOMPLETE =====
+function setupAutocomplete() {
+  document.querySelectorAll('.part-input').forEach(input => {
+    const cat = input.dataset.cat;
+    const sugBox = document.querySelector(`.suggestions[data-cat="${cat}"]`);
+    const clearBtn = document.querySelector(`.clear-btn[data-cat="${cat}"]`);
+
+    function showSuggestions(query) {
+      const results = search(query, cat);
+      // Mark recommended parts based on selected blade/main blade
+      const baseBlade = selected.blade || selected.mainBlade;
+      const recoId = baseBlade?.r?.[cat];
+      sugBox.innerHTML = results.map(p => {
+        const isReco = recoId === p.i;
+        return `<div class="sug-item" data-id="${p.i}" data-cat="${cat}">
+          <span class="sug-tier t${p.t.charAt(1)}">${p.t}</span>
+          <div class="sug-info">
+            <div class="name">${p.n}${p.z ? ' · ' + p.z : ''}</div>
+            <div class="meta">${p.c ? p.c + ' · ' : ''}${p.sp ? (p.sp === 'L' ? '左旋' : '右旋') + ' · ' : ''}使用率 ${p.u || '-'}</div>
+          </div>
+          ${isReco ? '<span class="sug-reco">⭐ 推薦</span>' : ''}
+        </div>`;
+      }).join('');
+      sugBox.classList.toggle('visible', results.length > 0);
+    }
+
+    input.addEventListener('focus', () => showSuggestions(input.value));
+    input.addEventListener('input', () => {
+      showSuggestions(input.value);
+      clearBtn.classList.toggle('visible', !!input.value);
+    });
+    input.addEventListener('blur', () => setTimeout(() => sugBox.classList.remove('visible'), 200));
+
+    sugBox.addEventListener('mousedown', (e) => {
+      const item = e.target.closest('.sug-item');
+      if (!item) return;
+      const part = getAllParts(cat).find(p => p.i === item.dataset.id);
+      if (!part) return;
+      selectPart(cat, part);
+      input.value = `${part.n}${part.z ? ' / ' + part.z : ''}`;
+      sugBox.classList.remove('visible');
+      clearBtn.classList.add('visible');
+    });
+
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      selected[cat] = null;
+      clearBtn.classList.remove('visible');
+      document.querySelector(`.selected-summary[data-cat="${cat}"]`).classList.remove('visible');
+      updateOutput();
+    });
+  });
+}
+
+function selectPart(cat, part) {
+  selected[cat] = part;
+  const summary = document.querySelector(`.selected-summary[data-cat="${cat}"]`);
+  summary.innerHTML = `<strong style="color:var(--text);">${part.n}</strong> · ${part.t} · ${part.c || ''} · 攻${part.s[0]} 防${part.s[1]} 持${part.s[2]} 重${part.s[3]} 爆${part.s[4]} 衝${part.s[5]}`;
+  summary.classList.add('visible');
+  updateRecommendations();
+  updateOutput();
+}
+
+function updateRecommendations() {
+  const baseBlade = selected.blade || selected.mainBlade;
+  const recoPanel = document.getElementById('recoPanel');
+  if (!baseBlade?.r) {
+    recoPanel.classList.add('hidden');
+    return;
+  }
+  const recoRatchet = DB.ratchet.find(r => r.i === baseBlade.r.ratchet);
+  const recoBit = DB.bit.find(b => b.i === baseBlade.r.bit);
+  if (!recoRatchet && !recoBit) {
+    recoPanel.classList.add('hidden');
+    return;
+  }
+  document.getElementById('recoContent').innerHTML = `
+    ${recoRatchet ? `<div class="reco-row"><span>軸 Ratchet</span><span><strong>${recoRatchet.n}</strong> <span class="ratio">(${recoRatchet.t})</span></span></div>` : ''}
+    ${recoBit ? `<div class="reco-row"><span>底軸 Bit</span><span><strong>${recoBit.n}</strong> <span class="ratio">(${recoBit.t})</span></span></div>` : ''}
+  `;
+  recoPanel.classList.remove('hidden');
+}
+
+document.getElementById('recoApply').addEventListener('click', () => {
+  const baseBlade = selected.blade || selected.mainBlade;
+  if (!baseBlade?.r) return;
+  const recoRatchet = DB.ratchet.find(r => r.i === baseBlade.r.ratchet);
+  const recoBit = DB.bit.find(b => b.i === baseBlade.r.bit);
+  if (recoRatchet) {
+    selectPart('ratchet', recoRatchet);
+    document.querySelector('.part-input[data-cat="ratchet"]').value = recoRatchet.n;
+    document.querySelector('.clear-btn[data-cat="ratchet"]').classList.add('visible');
+  }
+  if (recoBit) {
+    selectPart('bit', recoBit);
+    document.querySelector('.part-input[data-cat="bit"]').value = `${recoBit.n}${recoBit.z ? ' / ' + recoBit.z : ''}`;
+    document.querySelector('.clear-btn[data-cat="bit"]').classList.add('visible');
+  }
+});
+
+// ===== STAT CALCULATION =====
+function calcStats() {
+  const weights = currentSystem === 'bx' ? WEIGHTS_BX : WEIGHTS_CX;
+  const result = [0, 0, 0, 0, 0, 0];
+  let totalWeight = 0;
+  Object.keys(weights).forEach(cat => {
+    const part = selected[cat];
+    if (part) {
+      for (let i = 0; i < 6; i++) result[i] += (part.s[i] || 0) * weights[cat];
+      totalWeight += weights[cat];
+    }
+  });
+  if (totalWeight > 0 && totalWeight < 1) {
+    for (let i = 0; i < 6; i++) result[i] = result[i] / totalWeight;
+  }
+  return result.map(v => Math.round(Math.max(0, Math.min(100, v))));
+}
+
+// ===== STATS EDITOR =====
+function renderStatsEditor() {
+  const stats = statsOverride || calcStats();
+  document.getElementById('statsEditor').innerHTML = STAT_LABELS.map((label, i) => `
+    <div class="stat-row">
+      <label>${label} · ${STAT_LABELS_ZH[i]}</label>
+      <input type="range" min="0" max="100" value="${stats[i]}" data-stat="${i}">
+      <input type="number" min="0" max="100" value="${stats[i]}" data-stat="${i}">
+    </div>
+  `).join('');
+  document.querySelectorAll('#statsEditor input').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const idx = +e.target.dataset.stat;
+      const val = Math.max(0, Math.min(100, +e.target.value || 0));
+      const current = statsOverride || calcStats();
+      current[idx] = val;
+      statsOverride = current;
+      // Sync sliders and number inputs
+      document.querySelectorAll(`#statsEditor input[data-stat="${idx}"]`).forEach(i => i.value = val);
+      drawChart(current);
+    });
+  });
+}
+
+document.getElementById('resetStats').addEventListener('click', () => {
+  statsOverride = null;
+  renderStatsEditor();
+  drawChart(calcStats());
+});
+
+// ===== RADAR CHART =====
+function drawChart(stats) {
+  const svg = document.getElementById('radarChart');
+  const cx = 170, cy = 160, r = 110;
+  const angles = STAT_LABELS.map((_, i) => -Math.PI / 2 + i * Math.PI / 3);
+  
+  let html = '';
+  // Grid hexagons (20, 40, 60, 80, 100)
+  [0.2, 0.4, 0.6, 0.8, 1.0].forEach(level => {
+    const pts = angles.map(a => `${cx + r * level * Math.cos(a)},${cy + r * level * Math.sin(a)}`).join(' ');
+    html += `<polygon class="grid-line" points="${pts}"/>`;
+  });
+  // Axis lines
+  angles.forEach(a => {
+    html += `<line class="axis-line" x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(a)}" y2="${cy + r * Math.sin(a)}"/>`;
+  });
+  // Data polygon
+  const dataPts = angles.map((a, i) => `${cx + r * (stats[i] / 100) * Math.cos(a)},${cy + r * (stats[i] / 100) * Math.sin(a)}`).join(' ');
+  html += `<polygon class="data-poly" points="${dataPts}"/>`;
+  // Data points
+  angles.forEach((a, i) => {
+    const x = cx + r * (stats[i] / 100) * Math.cos(a);
+    const y = cy + r * (stats[i] / 100) * Math.sin(a);
+    html += `<circle cx="${x}" cy="${y}" r="3" fill="var(--t0)"/>`;
+  });
+  // Labels
+  angles.forEach((a, i) => {
+    const lx = cx + (r + 22) * Math.cos(a);
+    const ly = cy + (r + 22) * Math.sin(a) + 4;
+    html += `<text class="axis-label" x="${lx}" y="${ly}">${STAT_LABELS[i]}</text>`;
+    const vx = cx + (r + 22) * Math.cos(a);
+    const vy = cy + (r + 22) * Math.sin(a) + 18;
+    html += `<text class="axis-value" x="${vx}" y="${vy}">${stats[i]}</text>`;
+  });
+  svg.innerHTML = html;
+}
+
+function updateOutput() {
+  statsOverride = null;
+  renderStatsEditor();
+  drawChart(calcStats());
+}
+
+// ===== INIT =====
+setupAutocomplete();
+updateOutput();
+
+// ===== SAVE / LOAD CONFIGS =====
+function getRequiredParts() {
+  return currentSystem === 'bx' ? ['blade', 'ratchet', 'bit'] : ['lockChip', 'mainBlade', 'assistBlade', 'ratchet', 'bit'];
+}
+
+document.getElementById('saveConfig').addEventListener('click', async () => {
+  const name = document.getElementById('configName').value.trim() || `配置 ${new Date().toLocaleString('zh-TW')}`;
+  const required = getRequiredParts();
+  const missing = required.filter(c => !selected[c]);
+  if (missing.length) {
+    alert(`還缺少：${missing.join(', ')}`);
+    return;
+  }
+  const config = {
+    name,
+    system: currentSystem,
+    parts: {},
+    stats: statsOverride || calcStats(),
+    created: Date.now()
+  };
+  required.forEach(c => config.parts[c] = { i: selected[c].i, n: selected[c].n });
+
+  await saveConfig(config);
+  document.getElementById('configName').value = '';
+  renderConfigs();
+});
+
+async function saveConfig(config) {
+  if (window.firebaseReady && window.currentUser) {
+    const fb = window.firebaseModule;
+    await fb.addDoc(fb.collection(fb.db, `users/${window.currentUser.uid}/configs`), config);
+  } else {
+    savedConfigs.push({ ...config, id: 'local-' + Date.now() });
+    localStorage.setItem('bbx_configs', JSON.stringify(savedConfigs));
+  }
+}
+
+async function loadConfigs() {
+  if (window.firebaseReady && window.currentUser) {
+    const fb = window.firebaseModule;
+    const snap = await fb.getDocs(fb.collection(fb.db, `users/${window.currentUser.uid}/configs`));
+    savedConfigs = [];
+    snap.forEach(doc => savedConfigs.push({ id: doc.id, ...doc.data() }));
+  } else {
+    savedConfigs = JSON.parse(localStorage.getItem('bbx_configs') || '[]');
+  }
+  renderConfigs();
+}
+
+async function deleteConfig(id) {
+  if (!confirm('確定刪除這個配置？')) return;
+  if (window.firebaseReady && window.currentUser && !id.startsWith('local-')) {
+    const fb = window.firebaseModule;
+    await fb.deleteDoc(fb.doc(fb.db, `users/${window.currentUser.uid}/configs`, id));
+  } else {
+    savedConfigs = savedConfigs.filter(c => c.id !== id);
+    localStorage.setItem('bbx_configs', JSON.stringify(savedConfigs));
+  }
+  loadConfigs();
+}
+
+function loadConfigInBuilder(config) {
+  // Switch system
+  document.querySelector(`.sys-btn[data-system="${config.system}"]`).click();
+  // Set parts
+  Object.entries(config.parts).forEach(([cat, p]) => {
+    const part = getAllParts(cat).find(x => x.i === p.i);
+    if (part) {
+      selectPart(cat, part);
+      const input = document.querySelector(`.part-input[data-cat="${cat}"]`);
+      input.value = `${part.n}${part.z ? ' / ' + part.z : ''}`;
+      document.querySelector(`.clear-btn[data-cat="${cat}"]`).classList.add('visible');
+    }
+  });
+  // Set custom stats
+  statsOverride = config.stats;
+  renderStatsEditor();
+  drawChart(config.stats);
+  document.querySelector('.tab-btn[data-panel="builder"]').click();
+}
+
+function renderConfigs() {
+  const container = document.getElementById('configsContainer');
+  if (!savedConfigs.length) {
+    container.innerHTML = '<div class="empty-state">尚無儲存配置 · 搭配好後點上方「儲存配置」</div>';
+    return;
+  }
+  container.innerHTML = savedConfigs.sort((a, b) => b.created - a.created).map(c => `
+    <div class="config-card">
+      <div class="info">
+        <div class="title">${c.name}</div>
+        <div class="parts-summary">${Object.values(c.parts).map(p => p.n).join(' · ')}</div>
+        <div class="stats-mini">攻${c.stats[0]} 防${c.stats[1]} 持${c.stats[2]} 重${c.stats[3]} 爆${c.stats[4]} 衝${c.stats[5]} · ${c.system.toUpperCase()}</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" onclick='loadConfigInBuilder(${JSON.stringify(c).replace(/'/g, "&apos;")})' title="載入">⬆</button>
+        <button class="icon-btn danger" onclick="deleteConfig('${c.id}')" title="刪除">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== CUSTOM PARTS =====
+document.getElementById('addCustomPart').addEventListener('click', async () => {
+  const part = {
+    i: 'custom-' + Date.now(),
+    n: document.getElementById('cpName').value.trim(),
+    z: document.getElementById('cpNameZh').value.trim() || null,
+    c: document.getElementById('cpCode').value.trim() || null,
+    t: document.getElementById('cpTier').value,
+    sp: document.getElementById('cpSpin').value,
+    s: [
+      +document.getElementById('cpAttack').value,
+      +document.getElementById('cpDefense').value,
+      +document.getElementById('cpStamina').value,
+      +document.getElementById('cpWeight').value,
+      +document.getElementById('cpBurst').value,
+      +document.getElementById('cpDash').value
+    ],
+    cat: document.getElementById('cpCategory').value,
+    u: 0,
+    custom: true
+  };
+  if (!part.n) { alert('請輸入英文名稱'); return; }
+  await saveCustomPart(part);
+  alert(`✓ 已新增「${part.n}」到你的個人資料庫`);
+  // Clear form
+  document.getElementById('cpName').value = '';
+  document.getElementById('cpNameZh').value = '';
+  document.getElementById('cpCode').value = '';
+});
+
+async function saveCustomPart(part) {
+  if (window.firebaseReady && window.currentUser) {
+    const fb = window.firebaseModule;
+    await fb.addDoc(fb.collection(fb.db, `users/${window.currentUser.uid}/customParts`), part);
+  } else {
+    customParts.push(part);
+    localStorage.setItem('bbx_customParts', JSON.stringify(customParts));
+  }
+  loadCustomParts();
+}
+
+async function loadCustomParts() {
+  if (window.firebaseReady && window.currentUser) {
+    const fb = window.firebaseModule;
+    const snap = await fb.getDocs(fb.collection(fb.db, `users/${window.currentUser.uid}/customParts`));
+    customParts = [];
+    snap.forEach(doc => customParts.push({ id: doc.id, ...doc.data() }));
+  } else {
+    customParts = JSON.parse(localStorage.getItem('bbx_customParts') || '[]');
+  }
+}
+
+// ===== AUTH =====
+document.getElementById('authBtn').addEventListener('click', async () => {
+  if (!window.firebaseReady) {
+    openSetup();
+    return;
+  }
+  const fb = window.firebaseModule;
+  if (window.currentUser) {
+    await fb.signOut(fb.auth);
+  } else {
+    try {
+      await fb.signInWithPopup(fb.auth, fb.provider);
+    } catch (e) {
+      console.error('Sign-in failed:', e);
+      alert('登入失敗：' + e.message);
+    }
+  }
+});
+
+window.onAuthChange = (user) => {
+  const status = document.getElementById('authStatus');
+  const btn = document.getElementById('authBtn');
+  if (user) {
+    status.classList.add('signed-in');
+    status.classList.remove('local');
+    status.querySelector('.text').textContent = `已登入 · ${user.displayName || user.email}`;
+    btn.textContent = '登出';
+  } else {
+    status.classList.remove('signed-in');
+    status.classList.add('local');
+    status.querySelector('.text').textContent = '未登入 · 本地儲存模式';
+    btn.textContent = 'Google 登入';
+  }
+  loadCustomParts().then(loadConfigs);
+};
+
+// ===== SETUP MODAL =====
+function openSetup() { document.getElementById('setupModal').classList.add('open'); }
+function closeSetup() { document.getElementById('setupModal').classList.remove('open'); }
+document.getElementById('setupBtn').addEventListener('click', openSetup);
+document.getElementById('setupModal').addEventListener('click', (e) => {
+  if (e.target.id === 'setupModal') closeSetup();
+});
+
+// ===== INITIAL LOAD =====
+loadCustomParts().then(loadConfigs);
+</script>
+
+</body>
+</html>
