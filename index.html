@@ -777,6 +777,14 @@ if (isConfigured) {
 
 <!-- ============= MAIN APP LOGIC ============= -->
 <script>
+// HTML-escape any user-controlled text before inserting it via innerHTML (XSS guard).
+// Applies to custom-part names/codes and saved-config names, which originate from user input.
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch]);
+}
+
 // ===== POPULATE TIER GRIDS =====
 function renderTiers() {
   const cats = ['blade', 'ratchet', 'bit'];
@@ -859,11 +867,11 @@ function setupAutocomplete() {
       const recoId = baseBlade?.r?.[cat];
       sugBox.innerHTML = results.map(p => {
         const isReco = recoId === p.i;
-        return `<div class="sug-item" data-id="${p.i}" data-cat="${cat}">
-          <span class="sug-tier t${p.t.charAt(1)}">${p.t}</span>
+        return `<div class="sug-item" data-id="${esc(p.i)}" data-cat="${cat}">
+          <span class="sug-tier t${esc(p.t.charAt(1))}">${esc(p.t)}</span>
           <div class="sug-info">
-            <div class="name">${p.n}${p.z ? ' · ' + p.z : ''}</div>
-            <div class="meta">${p.c ? p.c + ' · ' : ''}${p.sp ? (p.sp === 'L' ? '左旋' : '右旋') + ' · ' : ''}使用率 ${p.u || '-'}</div>
+            <div class="name">${esc(p.n)}${p.z ? ' · ' + esc(p.z) : ''}</div>
+            <div class="meta">${p.c ? esc(p.c) + ' · ' : ''}${p.sp ? (p.sp === 'L' ? '左旋' : '右旋') + ' · ' : ''}使用率 ${esc(p.u || '-')}</div>
           </div>
           ${isReco ? '<span class="sug-reco">⭐ 推薦</span>' : ''}
         </div>`;
@@ -902,7 +910,7 @@ function setupAutocomplete() {
 function selectPart(cat, part) {
   selected[cat] = part;
   const summary = document.querySelector(`.selected-summary[data-cat="${cat}"]`);
-  summary.innerHTML = `<strong style="color:var(--text);">${part.n}</strong> · ${part.t} · ${part.c || ''} · 攻${part.s[0]} 防${part.s[1]} 持${part.s[2]} 重${part.s[3]} 爆${part.s[4]} 衝${part.s[5]}`;
+  summary.innerHTML = `<strong style="color:var(--text);">${esc(part.n)}</strong> · ${esc(part.t)} · ${esc(part.c || '')} · 攻${part.s[0]} 防${part.s[1]} 持${part.s[2]} 重${part.s[3]} 爆${part.s[4]} 衝${part.s[5]}`;
   summary.classList.add('visible');
   updateRecommendations();
   updateOutput();
@@ -1134,20 +1142,33 @@ function renderConfigs() {
     container.innerHTML = '<div class="empty-state">尚無儲存配置 · 搭配好後點上方「儲存配置」</div>';
     return;
   }
-  container.innerHTML = savedConfigs.sort((a, b) => b.created - a.created).map(c => `
+  container.innerHTML = savedConfigs.slice().sort((a, b) => b.created - a.created).map(c => `
     <div class="config-card">
       <div class="info">
-        <div class="title">${c.name}</div>
-        <div class="parts-summary">${Object.values(c.parts).map(p => p.n).join(' · ')}</div>
-        <div class="stats-mini">攻${c.stats[0]} 防${c.stats[1]} 持${c.stats[2]} 重${c.stats[3]} 爆${c.stats[4]} 衝${c.stats[5]} · ${c.system.toUpperCase()}</div>
+        <div class="title">${esc(c.name)}</div>
+        <div class="parts-summary">${Object.values(c.parts).map(p => esc(p.n)).join(' · ')}</div>
+        <div class="stats-mini">攻${c.stats[0]} 防${c.stats[1]} 持${c.stats[2]} 重${c.stats[3]} 爆${c.stats[4]} 衝${c.stats[5]} · ${esc(String(c.system).toUpperCase())}</div>
       </div>
       <div class="actions">
-        <button class="icon-btn" onclick='loadConfigInBuilder(${JSON.stringify(c).replace(/'/g, "&apos;")})' title="載入">⬆</button>
-        <button class="icon-btn danger" onclick="deleteConfig('${c.id}')" title="刪除">🗑</button>
+        <button class="icon-btn" data-action="load" data-id="${esc(c.id)}" title="載入">⬆</button>
+        <button class="icon-btn danger" data-action="delete" data-id="${esc(c.id)}" title="刪除">🗑</button>
       </div>
     </div>
   `).join('');
 }
+
+// Delegated handler — avoids injecting user data into inline onclick attributes.
+document.getElementById('configsContainer').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const cfg = savedConfigs.find(c => String(c.id) === id);
+  if (btn.dataset.action === 'delete') {
+    deleteConfig(id);
+  } else if (btn.dataset.action === 'load' && cfg) {
+    loadConfigInBuilder(cfg);
+  }
+});
 
 // ===== CUSTOM PARTS =====
 document.getElementById('addCustomPart').addEventListener('click', async () => {
