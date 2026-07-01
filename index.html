@@ -54,8 +54,6 @@
   .btn-auth { font-size:11px; padding:6px 12px; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text);
     border-radius:6px; cursor:pointer; }
   .btn-auth:hover { background: var(--surface-3); }
-  .btn-setup { font-size:11px; padding:6px 12px; background:transparent; border:1px solid var(--accent); color:var(--accent);
-    border-radius:6px; cursor:pointer; }
 
   /* TABS */
   .tabs-wrap { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
@@ -254,25 +252,6 @@
   .cps-stats label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; }
   .cps-stats input { padding:6px 8px; background:var(--surface-2); border:1px solid var(--border-bright); color:var(--text); border-radius:5px; font-family:'SF Mono',monospace; text-align:center; }
 
-  /* MODAL */
-  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
-  .modal-backdrop.open { display:flex; }
-  .modal { background:var(--surface); border:1px solid var(--border-bright); border-radius:14px; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; }
-  .modal-head { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
-  .modal-head h3 { font-size:16px; }
-  .modal-body { padding:20px; font-size:13px; color:var(--text-dim); line-height:1.65; }
-  .modal-body h4 { color:var(--text); font-size:13px; margin: 16px 0 8px; }
-  .modal-body code { background:var(--surface-2); padding:1px 6px; border-radius:3px; font-size:11.5px; color:var(--accent); font-family:'SF Mono',monospace; }
-  .modal-body pre { background:var(--surface-2); padding:12px; border-radius:8px; overflow-x:auto; font-size:11px; font-family:'SF Mono',monospace; color:var(--text); margin:8px 0; }
-  .modal-body ol, .modal-body ul { padding-left:20px; margin:8px 0; }
-  .modal-body li { margin-bottom:4px; }
-  .modal-body a { color:var(--accent); }
-  .modal-close { background:transparent; border:none; color:var(--text-dim); font-size:22px; cursor:pointer; }
-
-  /* BANNER */
-  .firebase-banner { background: rgba(251,191,36,.08); border:1px solid var(--warn); border-radius:8px; padding:10px 14px; margin:14px 0; font-size:12px; color:var(--text-dim); display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-  .firebase-banner.hidden { display:none; }
-
   footer { margin-top: 60px; padding: 24px 16px; border-top: 1px solid var(--border); text-align: center; color: var(--text-faint); font-size: 11px; }
 </style>
 </head>
@@ -289,7 +268,6 @@
         <span class="text">未登入 · 本地儲存模式</span>
       </div>
       <button class="btn-auth" id="authBtn">Google 登入</button>
-      <button class="btn-setup" id="setupBtn">⚙ Firebase 設定</button>
     </div>
   </div>
 </header>
@@ -450,11 +428,6 @@
 <section class="panel" id="panel-builder">
   <div class="panel-header"><h2>⚡ 組合測試器</h2><p class="panel-desc">輸入零件 → 自動推薦搭配 → 生成六邊形戰力圖 → 儲存配置</p></div>
 
-  <div class="firebase-banner" id="firebaseBanner">
-    <span>📦 目前使用本地儲存（瀏覽器localStorage）。設定 Firebase 後可跨裝置同步配置與自訂部件。</span>
-    <button class="btn-auth" onclick="openSetup()">設定 Firebase</button>
-  </div>
-
   <div class="builder-grid">
     <!-- LEFT: Inputs -->
     <div class="builder-section">
@@ -598,47 +571,6 @@
   </div>
 </section>
 
-</div>
-
-<!-- SETUP MODAL -->
-<div class="modal-backdrop" id="setupModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>⚙ Firebase + GitHub Pages 設定</h3>
-      <button class="modal-close" onclick="closeSetup()">×</button>
-    </div>
-    <div class="modal-body">
-      <p>請依照 <code>SETUP.md</code> 完整步驟設定。簡要：</p>
-      <h4>1. Firebase</h4>
-      <ol>
-        <li>到 <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> 建立新專案</li>
-        <li>Build → Authentication → Sign-in method → 啟用 Google</li>
-        <li>Build → Firestore Database → Create database（test mode）</li>
-        <li>Project settings → 加入Web app，複製 <code>firebaseConfig</code></li>
-        <li>編輯本 HTML 檔案，找到 <code>FIREBASE_CONFIG</code> 區塊，貼上你的配置</li>
-        <li>Authentication → Settings → Authorized domains → 加入你的 GitHub Pages 網域</li>
-      </ol>
-      <h4>2. GitHub Pages</h4>
-      <ol>
-        <li>建立新 repo（public）</li>
-        <li>把這個檔案改名為 <code>index.html</code> 上傳</li>
-        <li>Settings → Pages → Source: <code>main</code> branch / root</li>
-        <li>等 1–2 分鐘，網址為 <code>https://&lt;username&gt;.github.io/&lt;repo&gt;/</code></li>
-        <li>回 Firebase 把這個網址加到 Authorized domains</li>
-      </ol>
-      <h4>Firestore 安全規則</h4>
-      <pre>rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null
-        && request.auth.uid == userId;
-    }
-  }
-}</pre>
-      <p>詳細說明見隨附的 <code>SETUP.md</code> 檔案（英文版）。</p>
-    </div>
-  </div>
 </div>
 
 <footer>
@@ -791,7 +723,16 @@ const FIREBASE_CONFIG = {
   appId: "1:961794738871:web:f0cff166eb50cf2d1adb32"
 };
 
+// ============================================================
+// APP CHECK — reCAPTCHA v3 site key (public, safe to commit).
+// Register your site in Firebase Console → App Check → reCAPTCHA v3,
+// then paste the SITE key here. App Check stays OFF until you do.
+// See SETUP.md → "Security Hardening" for step-by-step.
+// ============================================================
+const APPCHECK_SITE_KEY = "PASTE_YOUR_RECAPTCHA_V3_SITE_KEY";
+
 const isConfigured = !FIREBASE_CONFIG.apiKey.startsWith('PASTE_');
+const appCheckEnabled = !APPCHECK_SITE_KEY.startsWith('PASTE_');
 
 if (isConfigured) {
   try {
@@ -802,6 +743,17 @@ if (isConfigured) {
       await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
 
     const app = initializeApp(FIREBASE_CONFIG);
+
+    // App Check must be initialized right after initializeApp, before Auth/Firestore use.
+    if (appCheckEnabled) {
+      const { initializeAppCheck, ReCaptchaV3Provider } =
+        await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js");
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(APPCHECK_SITE_KEY),
+        isTokenAutoRefreshEnabled: true
+      });
+    }
+
     const auth = getAuth(app);
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
@@ -812,7 +764,6 @@ if (isConfigured) {
       collection, addDoc, getDocs, deleteDoc, doc, setDoc
     };
     window.firebaseReady = true;
-    document.getElementById('firebaseBanner').classList.add('hidden');
 
     onAuthStateChanged(auth, (user) => {
       window.currentUser = user;
@@ -1246,7 +1197,9 @@ async function loadCustomParts() {
 // ===== AUTH =====
 document.getElementById('authBtn').addEventListener('click', async () => {
   if (!window.firebaseReady) {
-    openSetup();
+    const status = document.getElementById('authStatus');
+    status.classList.add('local');
+    status.querySelector('.text').textContent = '雲端同步暫時無法使用 · 本地儲存模式';
     return;
   }
   const fb = window.firebaseModule;
@@ -1278,14 +1231,6 @@ window.onAuthChange = (user) => {
   }
   loadCustomParts().then(loadConfigs);
 };
-
-// ===== SETUP MODAL =====
-function openSetup() { document.getElementById('setupModal').classList.add('open'); }
-function closeSetup() { document.getElementById('setupModal').classList.remove('open'); }
-document.getElementById('setupBtn').addEventListener('click', openSetup);
-document.getElementById('setupModal').addEventListener('click', (e) => {
-  if (e.target.id === 'setupModal') closeSetup();
-});
 
 // ===== INITIAL LOAD =====
 loadCustomParts().then(loadConfigs);
