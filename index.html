@@ -1062,9 +1062,16 @@ document.getElementById('saveConfig').addEventListener('click', async () => {
   };
   required.forEach(c => config.parts[c] = { i: selected[c].i, n: selected[c].n });
 
-  await saveConfig(config);
+  try {
+    await saveConfig(config);
+  } catch (e) {
+    console.error('Save config failed:', e);
+    alert('儲存失敗：' + (e && e.message ? e.message : e) +
+      '\n\n（雲端儲存被拒。請確認 Firestore 資料庫已建立，且安全規則已發佈——見 SETUP.md 第 4、5 步）');
+    return;
+  }
   document.getElementById('configName').value = '';
-  renderConfigs();
+  await loadConfigs();
 });
 
 async function saveConfig(config) {
